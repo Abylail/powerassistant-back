@@ -47,7 +47,7 @@ export const message = async (req, res) => {
 export const submitWidget = async (req, res) => {
     const {code} = req.params;
     const {form, chat_id} = req.body;
-    if (!code || !form || !chat_id) return res.status(500).json(createError("Не хватает аргументов"));
+    if (!code || !chat_id) return res.status(500).json(createError("Не хватает аргументов"));
 
     const assistantId = await getBusinessAssistantId(code);
     const threadId = getCache(`chat-${chat_id}`);

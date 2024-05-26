@@ -68,6 +68,7 @@ export const sendMessage = async (threadId, assistantId, clientMessage) => {
     // Жду run
     const runData = await runEnd(threadId, run.id);
 
+    // Если нужно действие
     if (runData.status === "requires_action") {
         const toolInfo = runData.required_action?.submit_tool_outputs?.tool_calls[0];
         setCache(`tool-id-${threadId}`, toolInfo.id);
@@ -86,22 +87,14 @@ export const submitWidgetMessage = async (threadId, assistantId, widget = null) 
     const lastRunId = getCache(`last-run-${threadId}`);
     const toolId = getCache(`tool-id-${threadId}`);
 
-    await sendToThreadApi({path: `/v1/threads/${threadId}/runs/${lastRunId}/submit_tool_output`, method: "POST", body: {
+    await sendToThreadApi({path: `/v1/threads/${threadId}/runs/${lastRunId}/submit_tool_outputs`, method: "POST", body: {
             tool_outputs: [
                 {
                     tool_call_id: toolId,
-                    output: !!widget
+                    output: !!widget ? "Заявка успешно отправлена" : "Клиент отменил отправку"
                 }
             ]
         }});
-
-    // Жду run
-    const runData = await runEnd(threadId, lastRunId);
-    if (runData.status === "requires_action") {
-        const toolInfo = runData.required_action?.submit_tool_outputs?.tool_calls[0];
-        setCache(`tool-id-${threadId}`, toolInfo.id);
-        return {message: "Тут открывается форма", widget: toolInfo.function};
-    }
 
     // Беру ответное сообщение
     const _message = await sendToThreadApi({path: `/v1/threads/${threadId}/messages?run_id=${lastRunId}`, method: "GET"});

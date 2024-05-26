@@ -4,12 +4,14 @@ import {createUpdateAssistant} from "../../../services/gpt/assistants.js";
 
 const createProducts = products => {
     return "\n\nПродукты: " + products.map(({name, description, price, priceCurrency, link}) => {
-        let product = `${name} описание ${description} цена ${price}${priceCurrency}`
+        let product = `${name} описание ${description}`
 
-        if (link) product += ` ссылка ${link}`
+        if (price) product += `цена ${price}${priceCurrency}`;
+
+        if (link) product += ` ссылка ${link}`;
 
         return product;
-    }).join(", ") + ". ";
+    }).join(",\n") + ". ";
 }
 
 const createLinks = links => {
