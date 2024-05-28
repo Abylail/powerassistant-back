@@ -27,7 +27,16 @@ const createLinks = links => {
 const createFunctions = async widgets => {
     if (!Array.isArray(widgets) || !widgets.length) return [];
     const _widgets = await models.Widget.findAll({where: {code: widgets}});
-    return _widgets.map(w => ({type: "function", function: w.dataValues.functionJson}));
+    let tools = [];
+    _widgets.forEach(wid => {
+        if (Array.isArray(wid.dataValues.functionJson)) {
+            wid.dataValues.functionJson.forEach(functionJson => tools.push({
+                type: "function",
+                function: functionJson
+            }))
+        }
+    });
+    return tools;
 }
 
 // Создать инструкции для AI
