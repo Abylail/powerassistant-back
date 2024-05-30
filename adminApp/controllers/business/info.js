@@ -73,7 +73,7 @@ const createPrepareProducts = async products => {
         let _product = {...p};
         if (_product.imageBuffer) {
             if (_product.imageUrl) await removeFile(_product.imageUrl);
-            _product.imageUrl = await uploadFile(_product.imageBuffer, "images");
+            _product.imageUrl = await uploadFile(_product.imageBuffer, "product");
             delete _product.imageBuffer;
         }
         return _product
