@@ -1,6 +1,7 @@
 import models from "../../../models/index.js";
 import {createError, createResponse} from "../../../helpers/responser.js";
 import {createUpdateAssistant} from "../../../services/gpt/assistants.js";
+import {removeFile, uploadFile} from "../../../services/image.js";
 
 const createProducts = products => {
     return "\n\nПродукты: " + products.map(({name, description, price, priceCurrency, link}) => {
@@ -66,6 +67,29 @@ const createInstructions = ({
     return _instructions;
 }
 
+const createPrepareProducts = async products => {
+    let _products = Array.isArray(products) ? products.slice() : [];
+    return await Promise.all(_products.map(async p => {
+        let _product = {...p};
+        if (_product.imageBuffer) {
+            if (_product.imageUrl) await removeFile(_product.imageUrl);
+            _product.imageUrl = await uploadFile(_product.imageBuffer, "images");
+            delete _product.imageBuffer;
+        }
+        return _product
+    }))
+}
+
+const prepareBusinessJson = info => {
+    const {products} = info;
+
+    const _prepared = {
+        ...info,
+        products: createPrepareProducts(products)
+    }
+    return _prepared;
+}
+
 // Получить информацию бизнеса
 export const getInfo = async (req, res) => {
     const {business_id} = req.user;
@@ -85,7 +109,7 @@ export const updateInfo = async (req, res) => {
     const businessData = req.body || {};
 
     try {
-        await models.Business.update(businessData, {where: {id: business_id}});
+        await models.Business.update(prepareBusinessJson(businessData), {where: {id: business_id}});
     } catch (e) {
         console.log(e);
         return res.status(500).json(createError("Не могу обновить"));
