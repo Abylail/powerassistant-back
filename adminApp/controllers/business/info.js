@@ -80,13 +80,14 @@ const createPrepareProducts = async products => {
     }))
 }
 
-const prepareBusinessJson = info => {
+const prepareBusinessJson = async info => {
     const {products} = info;
 
     const _prepared = {
         ...info,
-        products: createPrepareProducts(products)
+        products: await createPrepareProducts(products)
     }
+    console.log(_prepared);
     return _prepared;
 }
 
@@ -109,7 +110,7 @@ export const updateInfo = async (req, res) => {
     const businessData = req.body || {};
 
     try {
-        await models.Business.update(prepareBusinessJson(businessData), {where: {id: business_id}});
+        await models.Business.update(await prepareBusinessJson(businessData), {where: {id: business_id}});
     } catch (e) {
         console.log(e);
         return res.status(500).json(createError("Не могу обновить"));
