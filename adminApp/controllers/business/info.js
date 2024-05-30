@@ -67,7 +67,20 @@ const createInstructions = ({
     return _instructions;
 }
 
-const createPrepareProducts = async products => {
+const prepareLinks = async links => {
+    let _links = Array.isArray(links) ? links.slice() : [];
+    return await Promise.all(_links.map(async l => {
+        let _link = {...l};
+        if (_link.imageBuffer) {
+            if (_link.imageUrl) await removeFile(_link.imageUrl);
+            _link.imageUrl = await uploadFile(_link.imageBuffer, "link");
+            delete _link.imageBuffer;
+        }
+        return _link
+    }))
+}
+
+const prepareProducts = async products => {
     let _products = Array.isArray(products) ? products.slice() : [];
     return await Promise.all(_products.map(async p => {
         let _product = {...p};
@@ -81,13 +94,26 @@ const createPrepareProducts = async products => {
 }
 
 const prepareBusinessJson = async info => {
-    const {products} = info;
+    const {products, links} = info;
 
-    const _prepared = {
+    let _prepared = {
         ...info,
-        products: await createPrepareProducts(products)
+        products: await prepareProducts(products),
+        links: await prepareLinks(links),
     }
-    console.log(_prepared);
+
+    if (info.avatarBuffer) {
+        if (info.avatar) await removeFile(info.avatar);
+        _prepared.avatar = await uploadFile(info.avatarBuffer, "avatar");
+        delete info.avatarBuffer;
+    }
+
+    if (info.backgroundImageBuffer) {
+        if (info.backgroundImage) await removeFile(info.backgroundImage);
+        _prepared.backgroundImage = await uploadFile(info.backgroundImageBuffer, "background");
+        delete info.backgroundImage;
+    }
+
     return _prepared;
 }
 
